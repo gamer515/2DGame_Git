@@ -4,10 +4,12 @@ using UnityEngine;
 
 public class Player_Move : MonoBehaviour
 {
-    float Fast_Move = 3f;
-    float Base_Move = 1.5f;
+    float fast_Move = 3f;
+    float base_Move = 1.5f;
+    float current_Move;
 
-    public float jump;
+    public float jump = 6f;
+    int jump_count = 1;
     int changeImage;
 
     Rigidbody2D rigid;
@@ -16,11 +18,13 @@ public class Player_Move : MonoBehaviour
     void Awake()
     {
         rigid = GetComponent<Rigidbody2D>();
+        current_Move = base_Move;
     }
 
     void Update()
     {
         PlayerChange();
+        Player_Jump();
     }
 
     void FixedUpdate()
@@ -32,7 +36,16 @@ public class Player_Move : MonoBehaviour
     void PlayerMove()
     {
         float h = Input.GetAxisRaw("Horizontal");
-        rigid.AddForce(Vector2.right * h * Base_Move, ForceMode2D.Impulse);
+        rigid.AddForce(Vector2.right * h * current_Move, ForceMode2D.Impulse);
+
+        if (rigid.velocity.x > current_Move)
+        {
+            rigid.velocity = new Vector2(current_Move, rigid.velocity.y);
+        }
+        else if (rigid.velocity.x < -current_Move)
+        {
+            rigid.velocity = new Vector2(-current_Move, rigid.velocity.y);
+        }
     }
 
     //변신
@@ -40,16 +53,30 @@ public class Player_Move : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.F))
         {
-            Base_Move = Fast_Move;
+            jump_count = 3;
+            if (current_Move == base_Move)
+            {
+                current_Move = fast_Move;
+            }
+            else
+            {
+                current_Move = base_Move;
+            }
         }
+
     }
 
     //뛰기
     void Player_Jump()
     {
-        if (Input.GetButton("Jump")) //점프 중복을 제거
+        if (Input.GetButtonDown("Jump") && jump_count > 0) //점프 중복을 제거
         {
             rigid.AddForce(Vector2.up * jump, ForceMode2D.Impulse);
+            jump_count -= 1;
+            if (jump_count == 0)
+            {
+                jump_count = 1;
+            }
         }
     }
 }
